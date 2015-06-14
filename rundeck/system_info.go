@@ -20,7 +20,7 @@ type About struct {
 	ApiVersion int64    `xml:"apiversion"`
 	Build      string   `xml:"build"`
 	Node       string   `xml:"node"`
-	Base       string   `xml:"base"`
+	BaseDir    string   `xml:"base"`
 	ServerUUID string   `xml:"serverUUID,omitempty"`
 }
 
