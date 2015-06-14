@@ -109,7 +109,7 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 		return err
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		if strings.HasPrefix(res.Header.Get("Content-Type"), "text/xml") {
 			var richErr Error
 			err = xml.Unmarshal(resBodyBytes, &richErr)
@@ -122,12 +122,17 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 		}
 	}
 
-	err = xml.Unmarshal(resBodyBytes, result)
-	if err != nil {
-		err = fmt.Errorf("Error decoding response XML payload: %s", err.Error())
+	if result != nil {
+		if res.StatusCode != 200 && res.StatusCode != 201 {
+			return fmt.Errorf("Server did not return an XML payload")
+		}
+		err = xml.Unmarshal(resBodyBytes, result)
+		if err != nil {
+			return fmt.Errorf("Error decoding response XML payload: %s", err.Error())
+		}
 	}
 
-	return err
+	return nil
 }
 
 func (c *Client) get(pathParts []string, query map[string]string, result interface{}) error {
