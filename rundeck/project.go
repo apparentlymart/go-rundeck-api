@@ -79,6 +79,7 @@ func inflateProject(project *Project) {
 	for _, config := range project.RawConfigItems {
 		project.Config[config.Key] = config.Value
 	}
+	project.RawConfigItems = []ConfigProperty{}
 }
 
 func deflateProject(project *Project) {
