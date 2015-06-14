@@ -138,3 +138,15 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 func (c *Client) get(pathParts []string, query map[string]string, result interface{}) error {
 	return c.request("GET", pathParts, query, nil, result)
 }
+
+func (c *Client) post(pathParts []string, query map[string]string, reqBody interface {}, result interface{}) error {
+	return c.request("POST", pathParts, query, reqBody, result)
+}
+
+func (c *Client) put(pathParts []string, reqBody interface {}, result interface{}) error {
+	return c.request("PUT", pathParts, nil, reqBody, result)
+}
+
+func (c *Client) delete(pathParts []string) error {
+	return c.request("DELETE", pathParts, nil, nil, nil)
+}
