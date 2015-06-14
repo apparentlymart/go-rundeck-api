@@ -1,6 +1,8 @@
 // Package rundeck provides a client for interacting with a Rundeck instance
 // via its HTTP API.
 //
+// Instantiate a Client with the NewClient function to get started.
+//
 // At present this package uses Rundeck API version 12.
 package rundeck
 
