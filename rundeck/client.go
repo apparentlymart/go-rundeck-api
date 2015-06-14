@@ -94,6 +94,8 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 		}
 
 		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes))
+		req.ContentLength = int64(len(reqBodyBytes))
+		req.Header.Add("Content-Type", "application/xml")
 	}
 
 	res, err := c.httpClient.Do(req)
