@@ -3,7 +3,7 @@
 //
 // Instantiate a Client with the NewClient function to get started.
 //
-// At present this package uses Rundeck API version 12.
+// At present this package uses Rundeck API version 13.
 package rundeck
 
 import (
@@ -49,7 +49,7 @@ func NewClient(config *ClientConfig) (*Client, error) {
 		Transport: t,
 	}
 
-	apiPath, _ := url.Parse("api/12/")
+	apiPath, _ := url.Parse("api/13/")
 	baseUrl, err := url.Parse(config.BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid base URL: %s", err.Error())
