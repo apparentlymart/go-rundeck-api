@@ -4,13 +4,31 @@ import (
 	"encoding/xml"
 )
 
+// Project represents a project within Rundeck.
 type Project struct {
-	XMLName        xml.Name          `xml:"project"`
 	Name           string            `xml:"name"`
 	Description    string            `xml:"description,omitempty"`
-	URL            string            `xml:"url,attr"`
+
+	// RawConfigItems is a raw representation of the XML structure of
+	// project configuration. Config is a more convenient representation
+	// for most cases, so on read this property is emptied and its
+	// contents rebuilt in Config.
 	RawConfigItems []ConfigProperty  `xml:"config>property,omitempty"`
+
+	// Config is the project configuration.
+	//
+	// When making requests, Config and RawConfigItems are combined to produce
+	// a single set of configuration settings. Thus it isn't necessary and
+	// doesn't make sense to duplicate the same properties in both properties.
 	Config         map[string]string `xml:"-"`
+
+	// URL is used only to represent server responses. It is ignored when
+	// making requests.
+	URL            string            `xml:"url,attr"`
+
+	// XMLName is used only in XML unmarshalling and doesn't need to
+	// be set when creating a Project to send to the server.
+	XMLName        xml.Name          `xml:"project"`
 }
 
 type projects struct {
