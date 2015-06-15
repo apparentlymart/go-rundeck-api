@@ -13,7 +13,7 @@ type Project struct {
 	// project configuration. Config is a more convenient representation
 	// for most cases, so on read this property is emptied and its
 	// contents rebuilt in Config.
-	RawConfigItems []ConfigProperty  `xml:"config>property,omitempty"`
+	RawConfigItems []ProjectConfigProperty  `xml:"config>property,omitempty"`
 
 	// Config is the project configuration.
 	//
@@ -39,10 +39,10 @@ type projects struct {
 
 type projectConfig struct {
 	XMLName        xml.Name         `xml:"config"`
-	RawConfigItems []ConfigProperty `xml:"property,omitempty"`
+	RawConfigItems []ProjectConfigProperty `xml:"property,omitempty"`
 }
 
-type ConfigProperty struct {
+type ProjectConfigProperty struct {
 	XMLName xml.Name `xml:"property"`
 	Key     string   `xml:"key,attr"`
 	Value   string   `xml:"value,attr"`
@@ -75,9 +75,9 @@ func (c *Client) DeleteProject(name string) error {
 }
 
 func (c *Client) SetProjectConfig(projectName string, config map[string]string) error {
-	configItemsIn := make([]ConfigProperty, 0, len(config))
+	configItemsIn := make([]ProjectConfigProperty, 0, len(config))
 	for k, v := range config {
-		configItemsIn = append(configItemsIn, ConfigProperty{
+		configItemsIn = append(configItemsIn, ProjectConfigProperty{
 			Key:   k,
 			Value: v,
 		})
@@ -97,7 +97,7 @@ func inflateProject(project *Project) {
 	for _, config := range project.RawConfigItems {
 		project.Config[config.Key] = config.Value
 	}
-	project.RawConfigItems = []ConfigProperty{}
+	project.RawConfigItems = []ProjectConfigProperty{}
 }
 
 func deflateProject(project *Project) {
@@ -110,12 +110,12 @@ func deflateProject(project *Project) {
 
 	// Make a new slice that has the same contents as rawConfigItems
 	// but has the capacity to grow to include the niceConfigItems too.
-	comboConfigItems := make([]ConfigProperty, len(rawConfigItems), totalConfigItems)
+	comboConfigItems := make([]ProjectConfigProperty, len(rawConfigItems), totalConfigItems)
 	copy(comboConfigItems, rawConfigItems)
 
 	// Now we can append the niceConfigItems.
 	for k, v := range niceConfigItems {
-		comboConfigItems = append(comboConfigItems, ConfigProperty{
+		comboConfigItems = append(comboConfigItems, ProjectConfigProperty{
 			Key:   k,
 			Value: v,
 		})
