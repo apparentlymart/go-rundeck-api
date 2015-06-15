@@ -5,45 +5,45 @@ import (
 	"testing"
 )
 
-func TestMarshalJobCommandPlugin(t *testing.T) {
+func TestMarshalJobPlugin(t *testing.T) {
 	testMarshalXml(t, []marshalTest{
 		marshalTest{
 			"with-config",
-			JobCommandPlugin{
+			JobPlugin{
 				Type: "foo-plugin",
 				Config: map[string]string{
 					"woo": "foo",
 					"bar": "baz",
 				},
 			},
-			`<JobCommandPlugin type="foo-plugin"><configuration><entry key="bar" value="baz"></entry><entry key="woo" value="foo"></entry></configuration></JobCommandPlugin>`,
+			`<JobPlugin type="foo-plugin"><configuration><entry key="bar" value="baz"></entry><entry key="woo" value="foo"></entry></configuration></JobPlugin>`,
 		},
 		marshalTest{
 			"with-empty-config",
-			JobCommandPlugin{
+			JobPlugin{
 				Type: "foo-plugin",
 				Config: map[string]string{},
 			},
-			`<JobCommandPlugin type="foo-plugin"></JobCommandPlugin>`,
+			`<JobPlugin type="foo-plugin"></JobPlugin>`,
 		},
 		marshalTest{
 			"with-zero-value-config",
-			JobCommandPlugin{
+			JobPlugin{
 				Type: "foo-plugin",
 			},
-			`<JobCommandPlugin type="foo-plugin"></JobCommandPlugin>`,
+			`<JobPlugin type="foo-plugin"></JobPlugin>`,
 		},
 	})
 }
 
-func TestUnmarshalJobCommandPlugin(t *testing.T) {
+func TestUnmarshalJobPlugin(t *testing.T) {
 	testUnmarshalXml(t, []unmarshalTest{
 		unmarshalTest{
 			"with-config",
-			`<JobCommandPlugin type="foo-plugin"><configuration><entry key="woo" value="foo"/><entry key="bar" value="baz"/></configuration></JobCommandPlugin>`,
-			&JobCommandPlugin{},
+			`<JobPlugin type="foo-plugin"><configuration><entry key="woo" value="foo"/><entry key="bar" value="baz"/></configuration></JobPlugin>`,
+			&JobPlugin{},
 			func (rv interface {}) error {
-				v := rv.(*JobCommandPlugin)
+				v := rv.(*JobPlugin)
 				if v.Type != "foo-plugin" {
 					return fmt.Errorf("got Type %s, but expecting foo-plugin", v.Type)
 				}
@@ -61,10 +61,10 @@ func TestUnmarshalJobCommandPlugin(t *testing.T) {
 		},
 		unmarshalTest{
 			"with-empty-config",
-			`<JobCommandPlugin type="foo-plugin"><configuration/></JobCommandPlugin>`,
-			&JobCommandPlugin{},
+			`<JobPlugin type="foo-plugin"><configuration/></JobPlugin>`,
+			&JobPlugin{},
 			func (rv interface {}) error {
-				v := rv.(*JobCommandPlugin)
+				v := rv.(*JobPlugin)
 				if v.Type != "foo-plugin" {
 					return fmt.Errorf("got Type %s, but expecting foo-plugin", v.Type)
 				}
