@@ -50,18 +50,18 @@ type JobOptions struct {
 }
 
 type JobOption struct {
-	XMLName                 xml.Name `xml:"option"`
-	DefaultValue            string   `xml:"value,attr,omitempty"`
-	ValueChoices            []string `xml:"values,attr"`
-	ValueChoicesURL         string   `xml:"valuesUrl,attr,omitempty"`
-	RequirePredefinedChoice bool     `xml:"enforcedvalues,attr"`
-	ValidationRegex         string   `xml:"regex,attr,omitempty"`
-	Description             string   `xml:"description,omitempty"`
-	IsRequired              bool     `xml:"required,attr"`
-	AllowsMultipleValues    bool     `xml:"multivalued,attr"`
-	MultiValueDelimiter     string   `xml:"delimeter,attr"`
-	ObscureInput            bool     `xml:"secure,attr"`
-	ValueIsExposedToScripts bool     `xml:"valueExposed,attr"`
+	XMLName                 xml.Name        `xml:"option"`
+	DefaultValue            string          `xml:"value,attr,omitempty"`
+	ValueChoices            JobValueChoices `xml:"values,attr"`
+	ValueChoicesURL         string          `xml:"valuesUrl,attr,omitempty"`
+	RequirePredefinedChoice bool            `xml:"enforcedvalues,attr"`
+	ValidationRegex         string          `xml:"regex,attr,omitempty"`
+	Description             string          `xml:"description,omitempty"`
+	IsRequired              bool            `xml:"required,attr"`
+	AllowsMultipleValues    bool            `xml:"multivalued,attr"`
+	MultiValueDelimiter     string          `xml:"delimeter,attr"`
+	ObscureInput            bool            `xml:"secure,attr"`
+	ValueIsExposedToScripts bool            `xml:"valueExposed,attr"`
 }
 
 type JobValueChoices []string
@@ -107,10 +107,19 @@ type JobNodeFilter struct {
 	Query             string `xml:"filter"`
 }
 
-func (c *Client) GetJobsForProject(projectName string) ([]JobSummary, error) {
+func (c *Client) GetJobSummariesForProject(projectName string) ([]JobSummary, error) {
 	jobList := &jobSummaryList{}
 	err := c.get([]string{"project", projectName, "jobs"}, nil, jobList)
 	return jobList.Jobs, err
+}
+
+func (c *Client) GetJobsForProject(projectName string) ([]JobDetail, error) {
+	jobList := &jobDetailList{}
+	err := c.get([]string{"jobs", "export"}, map[string]string{"project": projectName}, jobList)
+	if err != nil {
+		return nil, err
+	}
+	return jobList.Jobs, nil
 }
 
 func (c *Client) GetJob(uuid string) (*JobDetail, error) {
