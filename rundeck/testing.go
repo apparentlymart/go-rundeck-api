@@ -24,7 +24,7 @@ func testMarshalXML(t *testing.T, tests []marshalTest) {
 	for _, test := range tests {
 		xmlBytes, err := xml.Marshal(test.Input)
 		if err != nil {
-			t.Errorf("Error in Marshall for test %s: %t", test.Name, err)
+			t.Errorf("Error in Marshall for test %s: %s", test.Name, err.Error())
 			continue
 		}
 		xmlStr := string(xmlBytes)

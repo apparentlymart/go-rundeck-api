@@ -48,7 +48,7 @@ func TestUnmarshalJobPlugin(t *testing.T) {
 					return fmt.Errorf("got Type %s, but expecting foo-plugin", v.Type)
 				}
 				if len(v.Config) != 2 {
-					return fmt.Errorf("got %i Config values, but expecting 2", len(v.Config))
+					return fmt.Errorf("got %v Config values, but expecting 2", len(v.Config))
 				}
 				if v.Config["woo"] != "foo" {
 					return fmt.Errorf("Config[\"woo\"] = \"%s\", but expecting \"foo\"", v.Config["woo"])

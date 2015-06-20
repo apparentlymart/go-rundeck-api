@@ -3,7 +3,6 @@ package rundeck
 import (
 	"encoding/xml"
 	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -303,77 +302,13 @@ func (a *JobCommandJobRefArguments) UnmarshalXML(d *xml.Decoder, start xml.Start
 }
 
 func (c JobPluginConfig) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	if len(map[string]string(c)) == 0 {
-		return nil
-	}
-	e.EncodeToken(start)
-
-	// Sort the keys so we'll have a deterministic result.
-	keys := []string{}
-	for k, _ := range map[string]string(c) {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		v := c[k]
-		e.EncodeToken(xml.StartElement{
-			Name: xml.Name{Local: "entry"},
-			Attr: []xml.Attr{
-				xml.Attr{
-					Name:  xml.Name{Local: "key"},
-					Value: k,
-				},
-				xml.Attr{
-					Name:  xml.Name{Local: "value"},
-					Value: v,
-				},
-			},
-		})
-		e.EncodeToken(xml.EndElement{xml.Name{Local: "entry"}})
-	}
-	e.EncodeToken(xml.EndElement{start.Name})
-	return nil
+	rc := map[string]string(c)
+	return marshalMapToXML(&rc, e, start, "entry", "key", "value")
 }
 
 func (c *JobPluginConfig) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	result := map[string]string{}
-	for {
-		token, err := d.Token()
-		if token == nil {
-			err = fmt.Errorf("EOF while decoding job command plugin config")
-		}
-		if err != nil {
-			return err
-		}
-
-		switch t := token.(type) {
-		default:
-			return fmt.Errorf("unexpected token %t while decoding job command plugin config", t)
-		case xml.StartElement:
-			if t.Name.Local != "entry" {
-				return fmt.Errorf("unexpected element %s while looking for plugin config entries", t.Name.Local)
-			}
-			var k string
-			var v string
-			for _, attr := range t.Attr {
-				if attr.Name.Local == "key" {
-					k = attr.Value
-				} else if attr.Name.Local == "value" {
-					v = attr.Value
-				}
-			}
-			if k == "" {
-				return fmt.Errorf("found plugin config entry with empty key")
-			}
-			result[k] = v
-		case xml.EndElement:
-			if t.Name.Local == start.Name.Local {
-				*c = result
-				return nil
-			}
-		}
-	}
+	rc := (*map[string]string)(c)
+	return unmarshalMapFromXML(rc, d, start, "entry", "key", "value")
 }
 
 // JobSummary produces a JobSummary instance with values populated from the import result.

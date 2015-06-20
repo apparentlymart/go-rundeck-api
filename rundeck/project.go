@@ -4,55 +4,47 @@ import (
 	"encoding/xml"
 )
 
+// ProjectSummary provides the basic identifying information for a project within Rundeck.
+type ProjectSummary struct {
+	Name        string `xml:"name"`
+	Description string `xml:"description,omitempty"`
+	URL         string `xml:"url,attr"`
+}
+
 // Project represents a project within Rundeck.
 type Project struct {
-	Name           string            `xml:"name"`
-	Description    string            `xml:"description,omitempty"`
-
-	// RawConfigItems is a raw representation of the XML structure of
-	// project configuration. Config is a more convenient representation
-	// for most cases, so on read this property is emptied and its
-	// contents rebuilt in Config.
-	RawConfigItems []ProjectConfigProperty  `xml:"config>property,omitempty"`
+	Name        string `xml:"name"`
+	Description string `xml:"description,omitempty"`
 
 	// Config is the project configuration.
 	//
 	// When making requests, Config and RawConfigItems are combined to produce
 	// a single set of configuration settings. Thus it isn't necessary and
 	// doesn't make sense to duplicate the same properties in both properties.
-	Config         map[string]string `xml:"-"`
+	Config ProjectConfig `xml:"config"`
 
 	// URL is used only to represent server responses. It is ignored when
 	// making requests.
-	URL            string            `xml:"url,attr"`
+	URL string `xml:"url,attr"`
 
 	// XMLName is used only in XML unmarshalling and doesn't need to
 	// be set when creating a Project to send to the server.
-	XMLName        xml.Name          `xml:"project"`
+	XMLName xml.Name `xml:"project"`
 }
+
+// ProjectConfig is a specialized map[string]string representing Rundeck project configuration
+type ProjectConfig map[string]string
 
 type projects struct {
-	XMLName  xml.Name  `xml:"projects"`
-	Count    int64     `xml:"count,attr"`
-	Projects []Project `xml:"project"`
-}
-
-type projectConfig struct {
-	XMLName        xml.Name         `xml:"config"`
-	RawConfigItems []ProjectConfigProperty `xml:"property,omitempty"`
-}
-
-type ProjectConfigProperty struct {
-	XMLName xml.Name `xml:"property"`
-	Key     string   `xml:"key,attr"`
-	Value   string   `xml:"value,attr"`
+	XMLName  xml.Name         `xml:"projects"`
+	Count    int64            `xml:"count,attr"`
+	Projects []ProjectSummary `xml:"project"`
 }
 
 // GetAllProjects retrieves and returns all of the projects defined in the Rundeck server.
-func (c *Client) GetAllProjects() ([]Project, error) {
+func (c *Client) GetAllProjects() ([]ProjectSummary, error) {
 	p := &projects{}
 	err := c.get([]string{"projects"}, nil, p)
-	inflateProjects(p.Projects)
 	return p.Projects, err
 }
 
@@ -60,16 +52,13 @@ func (c *Client) GetAllProjects() ([]Project, error) {
 func (c *Client) GetProject(name string) (*Project, error) {
 	p := &Project{}
 	err := c.get([]string{"project", name}, nil, p)
-	inflateProject(p)
 	return p, err
 }
 
 // CreateProject creates a new, empty project.
 func (c *Client) CreateProject(project *Project) (*Project, error) {
 	p := &Project{}
-	deflateProject(project)
 	err := c.post([]string{"projects"}, nil, project, p)
-	inflateProject(p)
 	return p, err
 }
 
@@ -79,59 +68,20 @@ func (c *Client) DeleteProject(name string) error {
 }
 
 // SetProjectConfig replaces the configuration of the named project.
-func (c *Client) SetProjectConfig(projectName string, config map[string]string) error {
-	configItemsIn := make([]ProjectConfigProperty, 0, len(config))
-	for k, v := range config {
-		configItemsIn = append(configItemsIn, ProjectConfigProperty{
-			Key:   k,
-			Value: v,
-		})
-	}
-
+func (c *Client) SetProjectConfig(projectName string, config ProjectConfig) error {
 	return c.put(
 		[]string{"project", projectName, "config"},
-		projectConfig{
-			RawConfigItems: configItemsIn,
-		},
+		config,
 		nil,
 	)
 }
 
-func inflateProject(project *Project) {
-	project.Config = make(map[string]string)
-	for _, config := range project.RawConfigItems {
-		project.Config[config.Key] = config.Value
-	}
-	project.RawConfigItems = []ProjectConfigProperty{}
+func (c ProjectConfig) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	rc := map[string]string(c)
+	return marshalMapToXML(&rc, e, start, "property", "key", "value")
 }
 
-func deflateProject(project *Project) {
-	// The user is allowed to populate both RawConfigItems and
-	// Config, but we assume they won't put the same config
-	// item in both places. If they do, the behavior is undefined.
-	rawConfigItems := project.RawConfigItems
-	niceConfigItems := project.Config
-	totalConfigItems := len(rawConfigItems) + len(niceConfigItems)
-
-	// Make a new slice that has the same contents as rawConfigItems
-	// but has the capacity to grow to include the niceConfigItems too.
-	comboConfigItems := make([]ProjectConfigProperty, len(rawConfigItems), totalConfigItems)
-	copy(comboConfigItems, rawConfigItems)
-
-	// Now we can append the niceConfigItems.
-	for k, v := range niceConfigItems {
-		comboConfigItems = append(comboConfigItems, ProjectConfigProperty{
-			Key:   k,
-			Value: v,
-		})
-	}
-
-	project.RawConfigItems = comboConfigItems
-	project.Config = map[string]string{}
-}
-
-func inflateProjects(projects []Project) {
-	for _, project := range projects {
-		inflateProject(&project)
-	}
+func (c *ProjectConfig) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	rc := (*map[string]string)(c)
+	return unmarshalMapFromXML(rc, d, start, "property", "key", "value")
 }
