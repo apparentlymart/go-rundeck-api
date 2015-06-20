@@ -22,21 +22,21 @@ type jobSummaryList struct {
 }
 
 type JobDetail struct {
-	XMLName                   xml.Name           `xml:"job"`
-	ID                        string             `xml:"id,omitempty"`
-	Name                      string             `xml:"name"`
-	GroupName                 string             `xml:"group,omitempty"`
-	ProjectName               string             `xml:"context>project,omitempty"`
-	Description               string             `xml:"description,omitempty"`
-	LogLevel                  string             `xml:"loglevel",omitempty`
-	AllowConcurrentExecutions bool               `xml:"multipleExecutions"`
-	OptionsConfig             JobOptions         `xml:"context>options"`
-	MaxThreadCount            int                `xml:"dispatch>threadcount"`
-	ContinueOnError           bool               `xml:"dispatch>keepgoing"`
-	RankAttribute             string             `xml:"dispatch>rankAttribute"`
-	RankOrder                 string             `xml:"dispatch>rankOrder"`
-	CommandSequence           JobCommandSequence `xml:"sequence"`
-	NodeFilter                JobNodeFilter      `xml:"nodefilters"`
+	XMLName                   xml.Name            `xml:"job"`
+	ID                        string              `xml:"uuid,omitempty"`
+	Name                      string              `xml:"name"`
+	GroupName                 string              `xml:"group,omitempty"`
+	ProjectName               string              `xml:"context>project,omitempty"`
+	Description               string              `xml:"description,omitempty"`
+	LogLevel                  string              `xml:"loglevel,omitempty"`
+	AllowConcurrentExecutions bool                `xml:"multipleExecutions"`
+	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
+	MaxThreadCount            int                 `xml:"dispatch>threadcount,omitempty"`
+	ContinueOnError           bool                `xml:"dispatch>keepgoing"`
+	RankAttribute             string              `xml:"dispatch>rankAttribute,omitempty"`
+	RankOrder                 string              `xml:"dispatch>rankOrder,omitempty"`
+	CommandSequence           *JobCommandSequence `xml:"sequence,omitempty"`
+	NodeFilter                *JobNodeFilter      `xml:"nodefilters,omitempty"`
 }
 
 type jobDetailList struct {
@@ -51,6 +51,7 @@ type JobOptions struct {
 
 type JobOption struct {
 	XMLName                 xml.Name        `xml:"option"`
+	Name                    string          `xml:"name,attr,omitempty"`
 	DefaultValue            string          `xml:"value,attr,omitempty"`
 	ValueChoices            JobValueChoices `xml:"values,attr"`
 	ValueChoicesURL         string          `xml:"valuesUrl,attr,omitempty"`
@@ -59,7 +60,7 @@ type JobOption struct {
 	Description             string          `xml:"description,omitempty"`
 	IsRequired              bool            `xml:"required,attr"`
 	AllowsMultipleValues    bool            `xml:"multivalued,attr"`
-	MultiValueDelimiter     string          `xml:"delimeter,attr"`
+	MultiValueDelimiter     string          `xml:"delimeter,attr,omitempty"`
 	ObscureInput            bool            `xml:"secure,attr"`
 	ValueIsExposedToScripts bool            `xml:"valueExposed,attr"`
 }
@@ -69,16 +70,16 @@ type JobValueChoices []string
 type JobCommandSequence struct {
 	XMLName          xml.Name     `xml:"sequence"`
 	ContinueOnError  bool         `xml:"keepgoing,attr"`
-	OrderingStrategy string       `xml:"strategy,attr"`
+	OrderingStrategy string       `xml:"strategy,attr,omitempty"`
 	Commands         []JobCommand `xml:"command"`
 }
 
 type JobCommand struct {
 	XMLName        xml.Name
-	ShellCommand   string            `xml:"exec"`
-	Script         string            `xml:"script"`
-	ScriptFile     string            `xml:"scriptfile"`
-	ScriptFileArgs string            `xml:"scriptargs"`
+	ShellCommand   string            `xml:"exec,omitempty"`
+	Script         string            `xml:"script,omitempty"`
+	ScriptFile     string            `xml:"scriptfile,omitempty"`
+	ScriptFileArgs string            `xml:"scriptargs,omitempty"`
 	Job            *JobCommandJobRef `xml:"jobref"`
 	StepPlugin     *JobPlugin        `xml:"step-plugin"`
 	NodeStepPlugin *JobPlugin        `xml:"node-step-plugin"`
@@ -104,7 +105,26 @@ type JobPluginConfig map[string]string
 
 type JobNodeFilter struct {
 	ExcludePrecedence bool   `xml:"excludeprecedence"`
-	Query             string `xml:"filter"`
+	Query             string `xml:"filter,omitempty"`
+}
+
+type jobImportResults struct {
+	Succeeded jobImportResultsCategory `xml:"succeeded"`
+	Failed    jobImportResultsCategory `xml:"failed"`
+	Skipped   jobImportResultsCategory `xml:"skipped"`
+}
+
+type jobImportResultsCategory struct {
+	Count   int               `xml:"count,attr"`
+	Results []jobImportResult `xml:"job"`
+}
+
+type jobImportResult struct {
+	ID          string `xml:"id,omitempty"`
+	Name        string `xml:"name"`
+	GroupName   string `xml:"group,omitempty"`
+	ProjectName string `xml:"context>project,omitempty"`
+	Error       string `xml:"error"`
 }
 
 func (c *Client) GetJobSummariesForProject(projectName string) ([]JobSummary, error) {
@@ -129,6 +149,47 @@ func (c *Client) GetJob(uuid string) (*JobDetail, error) {
 		return nil, err
 	}
 	return &jobList.Jobs[0], nil
+}
+
+func (c *Client) CreateJob(job *JobDetail) (*JobSummary, error) {
+	return c.importJob(job, "create")
+}
+
+func (c *Client) CreateOrUpdateJob(job *JobDetail) (*JobSummary, error) {
+	return c.importJob(job, "update")
+}
+
+func (c *Client) importJob(job *JobDetail, dupeOption string) (*JobSummary, error) {
+	jobList := &jobDetailList{
+		Jobs: []JobDetail{*job},
+	}
+	args := map[string]string{
+		"format":     "xml",
+		"dupeOption": dupeOption,
+		"uuidOption": "preserve",
+	}
+	result := &jobImportResults{}
+	err := c.postXMLBatch([]string{"jobs", "import"}, args, jobList, result)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Failed.Count > 0 {
+		errMsg := result.Failed.Results[0].Error
+		return nil, fmt.Errorf(errMsg)
+	}
+
+	if result.Succeeded.Count != 1 {
+		// Should never happen, since we send nothing in the request
+		// that should cause a job to be skipped.
+		return nil, fmt.Errorf("job was skipped")
+	}
+
+	return result.Succeeded.Results[0].JobSummary(), nil
+}
+
+func (c *Client) DeleteJob(id string) error {
+	return c.delete([]string{"job", id})
 }
 
 func (c JobValueChoices) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
@@ -237,5 +298,18 @@ func (c *JobPluginConfig) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 				return nil
 			}
 		}
+	}
+}
+
+func (r *jobImportResult) JobSummary() *JobSummary {
+	// Rundeck returns yet another differently-shaped job payload in response
+	// to imports. To hide that nonsense from the caller we just manually transform
+	// it into a JobSummary object, though it's not a complete one since the
+	// description is omitted for some reason.
+	return &JobSummary{
+		ID:          r.ID,
+		Name:        r.Name,
+		GroupName:   r.GroupName,
+		ProjectName: r.ProjectName,
 	}
 }
