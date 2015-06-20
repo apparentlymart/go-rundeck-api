@@ -20,7 +20,7 @@ type unmarshalTest struct {
 	TestFunc unmarshalTestFunc
 }
 
-func testMarshalXml(t *testing.T, tests []marshalTest) {
+func testMarshalXML(t *testing.T, tests []marshalTest) {
 	for _, test := range tests {
 		xmlBytes, err := xml.Marshal(test.Input)
 		if err != nil {
@@ -35,7 +35,7 @@ func testMarshalXml(t *testing.T, tests []marshalTest) {
 	}
 }
 
-func testUnmarshalXml(t *testing.T, tests []unmarshalTest) {
+func testUnmarshalXML(t *testing.T, tests []unmarshalTest) {
 	for _, test := range tests {
 		xml.Unmarshal([]byte(test.Input), test.Output)
 		err := test.TestFunc(test.Output)

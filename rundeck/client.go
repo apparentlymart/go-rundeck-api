@@ -50,11 +50,11 @@ func NewClient(config *ClientConfig) (*Client, error) {
 	}
 
 	apiPath, _ := url.Parse("api/13/")
-	baseUrl, err := url.Parse(config.BaseURL)
+	baseURL, err := url.Parse(config.BaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid base URL: %s", err.Error())
+		return nil, fmt.Errorf("invalid base URL: %s", err.Error())
 	}
-	apiURL := baseUrl.ResolveReference(apiPath)
+	apiURL := baseURL.ResolveReference(apiPath)
 
 	return &Client{
 		httpClient: httpClient,
@@ -117,18 +117,18 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 				return fmt.Errorf("HTTP Error %i with error decoding XML body: %s", res.StatusCode, err.Error())
 			}
 			return richErr
-		} else {
-			return fmt.Errorf("HTTP Error %i", res.StatusCode)
 		}
+
+		return fmt.Errorf("HTTP Error %i", res.StatusCode)
 	}
 
 	if result != nil {
 		if res.StatusCode != 200 && res.StatusCode != 201 {
-			return fmt.Errorf("Server did not return an XML payload")
+			return fmt.Errorf("server did not return an XML payload")
 		}
 		err = xml.Unmarshal(resBodyBytes, result)
 		if err != nil {
-			return fmt.Errorf("Error decoding response XML payload: %s", err.Error())
+			return fmt.Errorf("error decoding response XML payload: %s", err.Error())
 		}
 	}
 
@@ -214,18 +214,18 @@ func (c *Client) postXMLBatch(pathParts []string, args map[string]string, xmlBat
 				return fmt.Errorf("HTTP Error %i with error decoding XML body: %s", res.StatusCode, err.Error())
 			}
 			return richErr
-		} else {
-			return fmt.Errorf("HTTP Error %i", res.StatusCode)
 		}
+
+		return fmt.Errorf("HTTP Error %i", res.StatusCode)
 	}
 
 	if result != nil {
 		if res.StatusCode != 200 && res.StatusCode != 201 {
-			return fmt.Errorf("Server did not return an XML payload")
+			return fmt.Errorf("server did not return an XML payload")
 		}
 		err = xml.Unmarshal(resBodyBytes, result)
 		if err != nil {
-			return fmt.Errorf("Error decoding response XML payload: %s", err.Error())
+			return fmt.Errorf("error decoding response XML payload: %s", err.Error())
 		}
 	}
 

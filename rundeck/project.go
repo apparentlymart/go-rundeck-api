@@ -48,6 +48,7 @@ type ProjectConfigProperty struct {
 	Value   string   `xml:"value,attr"`
 }
 
+// GetAllProjects retrieves and returns all of the projects defined in the Rundeck server.
 func (c *Client) GetAllProjects() ([]Project, error) {
 	p := &projects{}
 	err := c.get([]string{"projects"}, nil, p)
@@ -55,6 +56,7 @@ func (c *Client) GetAllProjects() ([]Project, error) {
 	return p.Projects, err
 }
 
+// GetProject retrieves and returns the named project.
 func (c *Client) GetProject(name string) (*Project, error) {
 	p := &Project{}
 	err := c.get([]string{"project", name}, nil, p)
@@ -62,6 +64,7 @@ func (c *Client) GetProject(name string) (*Project, error) {
 	return p, err
 }
 
+// CreateProject creates a new, empty project.
 func (c *Client) CreateProject(project *Project) (*Project, error) {
 	p := &Project{}
 	deflateProject(project)
@@ -70,10 +73,12 @@ func (c *Client) CreateProject(project *Project) (*Project, error) {
 	return p, err
 }
 
+// DeleteProject deletes a project and all of its jobs.
 func (c *Client) DeleteProject(name string) error {
 	return c.delete([]string{"project", name})
 }
 
+// SetProjectConfig replaces the configuration of the named project.
 func (c *Client) SetProjectConfig(projectName string, config map[string]string) error {
 	configItemsIn := make([]ProjectConfigProperty, 0, len(config))
 	for k, v := range config {
