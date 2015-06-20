@@ -20,7 +20,7 @@ type SystemInfo struct {
 type About struct {
 	XMLName    xml.Name `xml:"rundeck"`
 	Version    string   `xml:"version"`
-	ApiVersion int64    `xml:"apiversion"`
+	APIVersion int64    `xml:"apiversion"`
 	Build      string   `xml:"build"`
 	Node       string   `xml:"node"`
 	BaseDir    string   `xml:"base"`

@@ -6,7 +6,7 @@ import (
 )
 
 func TestMarshalJobPlugin(t *testing.T) {
-	testMarshalXml(t, []marshalTest{
+	testMarshalXML(t, []marshalTest{
 		marshalTest{
 			"with-config",
 			JobPlugin{
@@ -37,7 +37,7 @@ func TestMarshalJobPlugin(t *testing.T) {
 }
 
 func TestUnmarshalJobPlugin(t *testing.T) {
-	testUnmarshalXml(t, []unmarshalTest{
+	testUnmarshalXML(t, []unmarshalTest{
 		unmarshalTest{
 			"with-config",
 			`<JobPlugin type="foo-plugin"><configuration><entry key="woo" value="foo"/><entry key="bar" value="baz"/></configuration></JobPlugin>`,
