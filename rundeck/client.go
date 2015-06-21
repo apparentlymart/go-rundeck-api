@@ -38,6 +38,14 @@ type Client struct {
 	authToken  string
 }
 
+type request struct {
+	Method string
+	PathParts []string
+	QueryArgs map[string]string
+	Headers map[string]string
+	BodyBytes []byte
+}
+
 // NewClient returns a configured Rundeck client.
 func NewClient(config *ClientConfig) (*Client, error) {
 	t := &http.Transport{
@@ -63,50 +71,15 @@ func NewClient(config *ClientConfig) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) request(method string, pathParts []string, query map[string]string, reqBody interface{}, result interface{}) error {
-
-	req := &http.Request{
-		Method: method,
-		Header: http.Header{},
-	}
-	req.Header.Add("User-Agent", "Go-Rundeck-API")
-	req.Header.Add("X-Rundeck-Auth-Token", c.authToken)
-	req.Header.Add("Accept", "application/xml")
-
-	urlPath := &url.URL{
-		Path: strings.Join(pathParts, "/"),
-	}
-	reqURL := c.apiURL.ResolveReference(urlPath)
-	req.URL = reqURL
-
-	if len(query) > 0 {
-		urlQuery := url.Values{}
-		for k, v := range query {
-			urlQuery.Add(k, v)
-		}
-		reqURL.RawQuery = urlQuery.Encode()
-	}
-
-	if reqBody != nil {
-		reqBodyBytes, err := xml.Marshal(reqBody)
-		if err != nil {
-			return err
-		}
-
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes))
-		req.ContentLength = int64(len(reqBodyBytes))
-		req.Header.Add("Content-Type", "application/xml")
-	}
-
-	res, err := c.httpClient.Do(req)
-
+func (c *Client) rawRequest(req *request) ([]byte, error) {
+	res, err := c.httpClient.Do(req.MakeHTTPRequest(c))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resBodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
@@ -114,16 +87,54 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 			var richErr Error
 			err = xml.Unmarshal(resBodyBytes, &richErr)
 			if err != nil {
-				return fmt.Errorf("HTTP Error %i with error decoding XML body: %s", res.StatusCode, err.Error())
+				return nil, fmt.Errorf("HTTP Error %i with error decoding XML body: %s", res.StatusCode, err.Error())
 			}
-			return richErr
+			return nil, richErr
 		}
 
-		return fmt.Errorf("HTTP Error %i", res.StatusCode)
+		return nil, fmt.Errorf("HTTP Error %i", res.StatusCode)
+	}
+
+	if res.StatusCode != 200 && res.StatusCode != 201 {
+		return nil, nil
+	}
+
+	return resBodyBytes, nil
+}
+
+func (c *Client) xmlRequest(method string, pathParts []string, query map[string]string, reqBody interface{}, result interface{}) error {
+
+	var err error
+	var reqBodyBytes []byte
+	reqBodyBytes = nil
+	if reqBody != nil {
+		reqBodyBytes, err = xml.Marshal(reqBody)
+		if err != nil {
+			return err
+		}
+	}
+
+	req := &request{
+		Method: method,
+		PathParts: pathParts,
+		QueryArgs: query,
+		BodyBytes: reqBodyBytes,
+		Headers: map[string]string{
+			"Accept": "application/xml",
+		},
+	}
+
+	if reqBody != nil {
+		req.Headers["Content-Type"] = "application/xml"
+	}
+
+	resBodyBytes, err := c.rawRequest(req)
+	if err != nil {
+		return err
 	}
 
 	if result != nil {
-		if res.StatusCode != 200 && res.StatusCode != 201 {
+		if resBodyBytes == nil {
 			return fmt.Errorf("server did not return an XML payload")
 		}
 		err = xml.Unmarshal(resBodyBytes, result)
@@ -136,19 +147,37 @@ func (c *Client) request(method string, pathParts []string, query map[string]str
 }
 
 func (c *Client) get(pathParts []string, query map[string]string, result interface{}) error {
-	return c.request("GET", pathParts, query, nil, result)
+	return c.xmlRequest("GET", pathParts, query, nil, result)
+}
+
+func (c *Client) rawGet(pathParts []string, query map[string]string, accept string) (string, error) {
+	req := &request{
+		Method: "GET",
+		PathParts: pathParts,
+		QueryArgs: query,
+		Headers: map[string]string{
+			"Accept": accept,
+		},
+	}
+
+	resBodyBytes, err := c.rawRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	return string(resBodyBytes), nil
 }
 
 func (c *Client) post(pathParts []string, query map[string]string, reqBody interface{}, result interface{}) error {
-	return c.request("POST", pathParts, query, reqBody, result)
+	return c.xmlRequest("POST", pathParts, query, reqBody, result)
 }
 
 func (c *Client) put(pathParts []string, reqBody interface{}, result interface{}) error {
-	return c.request("PUT", pathParts, nil, reqBody, result)
+	return c.xmlRequest("PUT", pathParts, nil, reqBody, result)
 }
 
 func (c *Client) delete(pathParts []string) error {
-	return c.request("DELETE", pathParts, nil, nil, nil)
+	return c.xmlRequest("DELETE", pathParts, nil, nil, nil)
 }
 
 func (c *Client) postXMLBatch(pathParts []string, args map[string]string, xmlBatch interface{}, result interface{}) error {
@@ -230,4 +259,40 @@ func (c *Client) postXMLBatch(pathParts []string, args map[string]string, xmlBat
 	}
 
 	return nil
+}
+
+func (r *request) MakeHTTPRequest(client *Client) *http.Request {
+	req := &http.Request{
+		Method: r.Method,
+		Header: http.Header{},
+	}
+
+	// Automatic/mandatory HTTP headers first
+	req.Header.Add("User-Agent", "Go-Rundeck-API")
+	req.Header.Add("X-Rundeck-Auth-Token", client.authToken)
+
+	for k, v := range r.Headers {
+		req.Header.Add(k, v)
+	}
+
+	urlPath := &url.URL{
+		Path: strings.Join(r.PathParts, "/"),
+	}
+	reqURL := client.apiURL.ResolveReference(urlPath)
+	req.URL = reqURL
+
+	if len(r.QueryArgs) > 0 {
+		urlQuery := url.Values{}
+		for k, v := range r.QueryArgs {
+			urlQuery.Add(k, v)
+		}
+		reqURL.RawQuery = urlQuery.Encode()
+	}
+
+	if r.BodyBytes != nil {
+		req.Body = ioutil.NopCloser(bytes.NewReader(r.BodyBytes))
+		req.ContentLength = int64(len(r.BodyBytes))
+	}
+
+	return req
 }
