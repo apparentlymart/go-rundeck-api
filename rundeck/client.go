@@ -82,6 +82,10 @@ func (c *Client) rawRequest(req *request) ([]byte, error) {
 		return nil, err
 	}
 
+	if res.StatusCode == 404 {
+		return nil, &NotFoundError{}
+	}
+
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		if strings.HasPrefix(res.Header.Get("Content-Type"), "text/xml") {
 			var richErr Error

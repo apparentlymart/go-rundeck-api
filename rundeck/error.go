@@ -13,3 +13,9 @@ type Error struct {
 func (err Error) Error() string {
 	return err.Message
 }
+
+type NotFoundError struct {}
+
+func (err NotFoundError) Error() string {
+	return "not found"
+}
