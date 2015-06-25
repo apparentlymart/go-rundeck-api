@@ -29,10 +29,10 @@ type JobDetail struct {
 	Name                      string              `xml:"name"`
 	GroupName                 string              `xml:"group,omitempty"`
 	ProjectName               string              `xml:"context>project,omitempty"`
+	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
 	Description               string              `xml:"description,omitempty"`
 	LogLevel                  string              `xml:"loglevel,omitempty"`
 	AllowConcurrentExecutions bool                `xml:"multipleExecutions"`
-	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
 	MaxThreadCount            int                 `xml:"dispatch>threadcount,omitempty"`
 	ContinueOnError           bool                `xml:"dispatch>keepgoing"`
 	RankAttribute             string              `xml:"dispatch>rankAttribute,omitempty"`
@@ -48,7 +48,7 @@ type jobDetailList struct {
 
 // JobOptions represents the set of options on a job, if any.
 type JobOptions struct {
-	PreserveOrder bool        `xml:"preserveOrder"`
+	PreserveOrder bool        `xml:"preserveOrder,attr,omitempty"`
 	Options       []JobOption `xml:"option"`
 }
 
@@ -71,7 +71,7 @@ type JobOption struct {
 	ValueChoicesURL         string          `xml:"valuesUrl,attr,omitempty"`
 
 	// If set, Rundeck will reject values that are not in the set of predefined choices.
-	RequirePredefinedChoice bool            `xml:"enforcedvalues,attr"`
+	RequirePredefinedChoice bool            `xml:"enforcedvalues,attr,omitempty"`
 
 	// Regular expression to be used to validate the option value.
 	ValidationRegex         string          `xml:"regex,attr,omitempty"`
@@ -80,11 +80,11 @@ type JobOption struct {
 	Description             string          `xml:"description,omitempty"`
 
 	// If set, Rundeck requires a value to be set for this option.
-	IsRequired              bool            `xml:"required,attr"`
+	IsRequired              bool            `xml:"required,attr,omitempty"`
 
 	// When either ValueChoices or ValueChoicesURL is set, controls whether more than one
 	// choice may be selected as the value.
-	AllowsMultipleValues    bool            `xml:"multivalued,attr"`
+	AllowsMultipleValues    bool            `xml:"multivalued,attr,omitempty"`
 
 	// If AllowsMultipleChoices is set, the string that will be used to delimit the multiple
 	// chosen options.
@@ -92,10 +92,10 @@ type JobOption struct {
 
 	// If set, the input for this field will be obscured in the UI. Useful for passwords
 	// and other secrets.
-	ObscureInput            bool            `xml:"secure,attr"`
+	ObscureInput            bool            `xml:"secure,attr,omitempty"`
 
 	// If set, the value can be accessed from scripts.
-	ValueIsExposedToScripts bool            `xml:"valueExposed,attr"`
+	ValueIsExposedToScripts bool            `xml:"valueExposed,attr,omitempty"`
 }
 
 // JobValueChoices is a specialization of []string representing a sequence of predefined values
