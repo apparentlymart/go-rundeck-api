@@ -51,48 +51,48 @@ type JobOptions struct {
 
 // JobOption represents a single option on a job.
 type JobOption struct {
-	XMLName                 xml.Name        `xml:"option"`
+	XMLName xml.Name `xml:"option"`
 
 	// The name of the option, which can be used to interpolate its value
 	// into job commands.
-	Name                    string          `xml:"name,attr,omitempty"`
+	Name string `xml:"name,attr,omitempty"`
 
 	// The default value of the option.
-	DefaultValue            string          `xml:"value,attr,omitempty"`
+	DefaultValue string `xml:"value,attr,omitempty"`
 
 	// A sequence of predefined choices for this option. Mutually exclusive with ValueChoicesURL.
-	ValueChoices            JobValueChoices `xml:"values,attr"`
+	ValueChoices JobValueChoices `xml:"values,attr"`
 
 	// A URL from which the predefined choices for this option will be retrieved.
 	// Mutually exclusive with ValueChoices
-	ValueChoicesURL         string          `xml:"valuesUrl,attr,omitempty"`
+	ValueChoicesURL string `xml:"valuesUrl,attr,omitempty"`
 
 	// If set, Rundeck will reject values that are not in the set of predefined choices.
-	RequirePredefinedChoice bool            `xml:"enforcedvalues,attr,omitempty"`
+	RequirePredefinedChoice bool `xml:"enforcedvalues,attr,omitempty"`
 
 	// Regular expression to be used to validate the option value.
-	ValidationRegex         string          `xml:"regex,attr,omitempty"`
+	ValidationRegex string `xml:"regex,attr,omitempty"`
 
 	// Description of the value to be shown in the Rundeck UI.
-	Description             string          `xml:"description,omitempty"`
+	Description string `xml:"description,omitempty"`
 
 	// If set, Rundeck requires a value to be set for this option.
-	IsRequired              bool            `xml:"required,attr,omitempty"`
+	IsRequired bool `xml:"required,attr,omitempty"`
 
 	// When either ValueChoices or ValueChoicesURL is set, controls whether more than one
 	// choice may be selected as the value.
-	AllowsMultipleValues    bool            `xml:"multivalued,attr,omitempty"`
+	AllowsMultipleValues bool `xml:"multivalued,attr,omitempty"`
 
 	// If AllowsMultipleChoices is set, the string that will be used to delimit the multiple
 	// chosen options.
-	MultiValueDelimiter     string          `xml:"delimeter,attr,omitempty"`
+	MultiValueDelimiter string `xml:"delimeter,attr,omitempty"`
 
 	// If set, the input for this field will be obscured in the UI. Useful for passwords
 	// and other secrets.
-	ObscureInput            bool            `xml:"secure,attr,omitempty"`
+	ObscureInput bool `xml:"secure,attr,omitempty"`
 
 	// If set, the value can be accessed from scripts.
-	ValueIsExposedToScripts bool            `xml:"valueExposed,attr,omitempty"`
+	ValueIsExposedToScripts bool `xml:"valueExposed,attr,omitempty"`
 }
 
 // JobValueChoices is a specialization of []string representing a sequence of predefined values
@@ -101,46 +101,46 @@ type JobValueChoices []string
 
 // JobCommandSequence describes the sequence of operations that a job will perform.
 type JobCommandSequence struct {
-	XMLName          xml.Name     `xml:"sequence"`
+	XMLName xml.Name `xml:"sequence"`
 
 	// If set, Rundeck will continue with subsequent commands after a command fails.
-	ContinueOnError  bool         `xml:"keepgoing,attr"`
+	ContinueOnError bool `xml:"keepgoing,attr"`
 
 	// Chooses the strategy by which Rundeck will execute commands. Can either be "node-first" or
 	// "step-first".
-	OrderingStrategy string       `xml:"strategy,attr,omitempty"`
+	OrderingStrategy string `xml:"strategy,attr,omitempty"`
 
 	// Sequence of commands to run in the sequence.
-	Commands         []JobCommand `xml:"command"`
+	Commands []JobCommand `xml:"command"`
 }
 
 // JobCommand describes a particular command to run within the sequence of commands on a job.
 // The members of this struct are mutually-exclusive except for the pair of ScriptFile and
 // ScriptFileArgs.
 type JobCommand struct {
-	XMLName        xml.Name
+	XMLName xml.Name
 
 	// A literal shell command to run.
-	ShellCommand   string            `xml:"exec,omitempty"`
+	ShellCommand string `xml:"exec,omitempty"`
 
 	// An inline program to run. This will be written to disk and executed, so if it is
 	// a shell script it should have an appropriate #! line.
-	Script         string            `xml:"script,omitempty"`
+	Script string `xml:"script,omitempty"`
 
 	// A pre-existing file (on the target nodes) that will be executed.
-	ScriptFile     string            `xml:"scriptfile,omitempty"`
+	ScriptFile string `xml:"scriptfile,omitempty"`
 
 	// When ScriptFile is set, the arguments to provide to the script when executing it.
-	ScriptFileArgs string            `xml:"scriptargs,omitempty"`
+	ScriptFileArgs string `xml:"scriptargs,omitempty"`
 
 	// A reference to another job to run as this command.
-	Job            *JobCommandJobRef `xml:"jobref"`
+	Job *JobCommandJobRef `xml:"jobref"`
 
 	// Configuration for a step plugin to run as this command.
-	StepPlugin     *JobPlugin        `xml:"step-plugin"`
+	StepPlugin *JobPlugin `xml:"step-plugin"`
 
 	// Configuration for a node step plugin to run as this command.
-	NodeStepPlugin *JobPlugin        `xml:"node-step-plugin"`
+	NodeStepPlugin *JobPlugin `xml:"node-step-plugin"`
 }
 
 // JobCommandJobRef is a reference to another job that will run as one of the commands of a job.
