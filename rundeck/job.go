@@ -33,10 +33,7 @@ type JobDetail struct {
 	Description               string              `xml:"description,omitempty"`
 	LogLevel                  string              `xml:"loglevel,omitempty"`
 	AllowConcurrentExecutions bool                `xml:"multipleExecutions"`
-	MaxThreadCount            int                 `xml:"dispatch>threadcount,omitempty"`
-	ContinueOnError           bool                `xml:"dispatch>keepgoing"`
-	RankAttribute             string              `xml:"dispatch>rankAttribute,omitempty"`
-	RankOrder                 string              `xml:"dispatch>rankOrder,omitempty"`
+	Dispatch                  *JobDispatch        `xml:"dispatch"`
 	CommandSequence           *JobCommandSequence `xml:"sequence,omitempty"`
 	NodeFilter                *JobNodeFilter      `xml:"nodefilters,omitempty"`
 }
@@ -192,6 +189,13 @@ type jobImportResult struct {
 	GroupName   string `xml:"group,omitempty"`
 	ProjectName string `xml:"context>project,omitempty"`
 	Error       string `xml:"error"`
+}
+
+type JobDispatch struct {
+	MaxThreadCount  int    `xml:"threadcount,omitempty"`
+	ContinueOnError bool   `xml:"keepgoing"`
+	RankAttribute   string `xml:"rankAttribute,omitempty"`
+	RankOrder       string `xml:"rankOrder,omitempty"`
 }
 
 // GetJobSummariesForProject returns summaries of the jobs belonging to the named project.

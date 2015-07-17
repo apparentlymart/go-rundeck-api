@@ -5,6 +5,41 @@ import (
 	"testing"
 )
 
+func TestUnmarshalJobDetail(t *testing.T) {
+	testUnmarshalXML(t, []unmarshalTest{
+		unmarshalTest{
+			"with-config",
+			`<job><uuid>baz</uuid><dispatch><rankOrder>ascending</rankOrder></dispatch></job>`,
+			&JobDetail{},
+			func (rv interface {}) error {
+				v := rv.(*JobDetail)
+				if v.ID != "baz" {
+					return fmt.Errorf("got ID %s, but expecting baz", v.ID)
+				}
+				if v.Dispatch.RankOrder != "ascending" {
+					return fmt.Errorf("Dispatch.RankOrder = \"%v\", but expecting \"ascending\"", v.Dispatch.RankOrder)
+				}
+				return nil
+			},
+		},
+		unmarshalTest{
+			"with-empty-config",
+			`<JobPlugin type="foo-plugin"><configuration/></JobPlugin>`,
+			&JobPlugin{},
+			func (rv interface {}) error {
+				v := rv.(*JobPlugin)
+				if v.Type != "foo-plugin" {
+					return fmt.Errorf("got Type %s, but expecting foo-plugin", v.Type)
+				}
+				if len(v.Config) != 0 {
+					return fmt.Errorf("got %i Config values, but expecting 0", len(v.Config))
+				}
+				return nil
+			},
+		},
+	})
+}
+
 func TestMarshalJobPlugin(t *testing.T) {
 	testMarshalXML(t, []marshalTest{
 		marshalTest{
