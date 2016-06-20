@@ -224,6 +224,25 @@ type jobScheduleTime struct {
 	Seconds string `xml:"seconds,attr"`
 }
 
+func (c *Client) JobScheduleFromString(schedule string) (JobSchedule) {
+	return JobSchedule{
+		Month: jobScheduleMonth{
+			Month: "*",
+		},
+		Year: jobScheduleYear{
+			Year: "*",
+		},
+		Weekday: jobScheduleWeekDay{
+			Weekday: "*",
+		},
+		Time: jobScheduleTime{
+			Hour: "0/1",
+			Minute: "0",
+			Seconds: "0",
+		},
+	}
+}
+
 // GetJobSummariesForProject returns summaries of the jobs belonging to the named project.
 func (c *Client) GetJobSummariesForProject(projectName string) ([]JobSummary, error) {
 	jobList := &jobSummaryList{}
