@@ -154,4 +154,27 @@ func TestMarshalJobSchedule(t *testing.T) {
 			`<JobSchedule><month month="*"></month><year year="*"></year><weekday weekday="*"></weekday><time hour="0/1" minute="0" seconds="0"></time></JobSchedule>`,
 		},
 	})
+
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-config",
+			JobSchedule{
+				Month: jobScheduleMonth{
+					Month: "*",
+				},
+				Year: jobScheduleYear{
+					Year: "*",
+				},
+				Weekday: jobScheduleWeekDay{
+					Weekday: "*",
+				},
+				Time: jobScheduleTime{
+					Hour: "13",
+					Minute: "0",
+					Seconds: "0",
+				},
+			},
+			`<JobSchedule><month month="*"></month><year year="*"></year><weekday weekday="*"></weekday><time hour="13" minute="0" seconds="0"></time></JobSchedule>`,
+		},
+	})
 }
