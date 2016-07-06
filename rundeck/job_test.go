@@ -111,3 +111,70 @@ func TestUnmarshalJobPlugin(t *testing.T) {
 		},
 	})
 }
+
+func TestUnmarshalJobScheduling(t *testing.T) {
+	testUnmarshalXML(t, []unmarshalTest {
+		unmarshalTest{
+			"with-config",
+			`<job><uuid>baz</uuid><schedule><month month="*"></month><time hour='0/1' minute='0' seconds='0' /><weekday day='*' /><year year='*' /></schedule></job>`,
+			&JobDetail{},
+			func (rv interface {}) error {
+				v := rv.(*JobDetail)
+				if v.ID != "baz" {
+					return fmt.Errorf("got ID %s, but expecting baz", v.ID)
+				}
+				if v.Schedule.Month.Month != "*" {
+					return fmt.Errorf("Schedule.Month = \"%v\", but expecting \"*\"", v.Schedule.Month.Month)
+				}
+				return nil
+			},
+		},
+	})
+}
+func TestMarshalJobSchedule(t *testing.T) {
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-config",
+			JobSchedule{
+				Month: jobScheduleMonth{
+					Month: "*",
+				},
+				Year: jobScheduleYear{
+					Year: "*",
+				},
+				Weekday: jobScheduleWeekDay{
+					Weekday: "*",
+				},
+				Time: jobScheduleTime{
+					Hour: "0/1",
+					Minute: "0",
+					Seconds: "0",
+				},
+			},
+			`<JobSchedule><month month="*"></month><year year="*"></year><weekday weekday="*"></weekday><time hour="0/1" minute="0" seconds="0"></time></JobSchedule>`,
+		},
+	})
+
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-config",
+			JobSchedule{
+				Month: jobScheduleMonth{
+					Month: "*",
+				},
+				Year: jobScheduleYear{
+					Year: "*",
+				},
+				Weekday: jobScheduleWeekDay{
+					Weekday: "*",
+				},
+				Time: jobScheduleTime{
+					Hour: "13",
+					Minute: "0",
+					Seconds: "0",
+				},
+			},
+			`<JobSchedule><month month="*"></month><year year="*"></year><weekday weekday="*"></weekday><time hour="13" minute="0" seconds="0"></time></JobSchedule>`,
+		},
+	})
+}

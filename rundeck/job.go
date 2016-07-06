@@ -36,6 +36,7 @@ type JobDetail struct {
 	Dispatch                  *JobDispatch        `xml:"dispatch"`
 	CommandSequence           *JobCommandSequence `xml:"sequence,omitempty"`
 	NodeFilter                *JobNodeFilter      `xml:"nodefilters,omitempty"`
+	Schedule                  *JobSchedule        `xml:"schedule"`
 }
 
 type jobDetailList struct {
@@ -196,6 +197,31 @@ type JobDispatch struct {
 	ContinueOnError bool   `xml:"keepgoing"`
 	RankAttribute   string `xml:"rankAttribute,omitempty"`
 	RankOrder       string `xml:"rankOrder,omitempty"`
+}
+
+type JobSchedule struct {
+	Month           jobScheduleMonth    `xml:"month"`
+	Year            jobScheduleYear     `xml:"year"`
+	Weekday         jobScheduleWeekDay  `xml:"weekday"`
+	Time            jobScheduleTime     `xml:"time"`
+}
+
+type jobScheduleMonth struct {
+	Month string `xml:"month,attr"`
+}
+
+type jobScheduleYear struct {
+	Year string `xml:"year,attr"`
+}
+
+type jobScheduleWeekDay struct {
+	Weekday string `xml:"weekday,attr"`
+}
+
+type jobScheduleTime struct {
+	Hour    string `xml:"hour,attr"`
+	Minute  string `xml:"minute,attr"`
+	Seconds string `xml:"seconds,attr"`
 }
 
 // GetJobSummariesForProject returns summaries of the jobs belonging to the named project.
