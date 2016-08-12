@@ -31,6 +31,7 @@ type JobDetail struct {
 	ProjectName               string              `xml:"context>project,omitempty"`
 	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
 	Description               string              `xml:"description,omitempty"`
+	ExecutionEnabled          bool                `xml:"executionEnabled,omitempty"`
 	LogLevel                  string              `xml:"loglevel,omitempty"`
 	AllowConcurrentExecutions bool                `xml:"multipleExecutions"`
 	Dispatch                  *JobDispatch        `xml:"dispatch"`
