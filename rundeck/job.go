@@ -92,6 +92,9 @@ type JobOption struct {
 	// and other secrets.
 	ObscureInput bool `xml:"secure,attr,omitempty"`
 
+	// If ObscureInput is set, StoragePath can be used to point out credentials.
+	StoragePath string `xml:"storagePath,attr,omitempty"`
+
 	// If set, the value can be accessed from scripts.
 	ValueIsExposedToScripts bool `xml:"valueExposed,attr,omitempty"`
 }
