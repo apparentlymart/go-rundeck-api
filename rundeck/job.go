@@ -121,6 +121,9 @@ type JobCommandSequence struct {
 type JobCommand struct {
 	XMLName xml.Name
 
+	// Description
+	Description string `xml:"description,omitempty"`
+
 	// A literal shell command to run.
 	ShellCommand string `xml:"exec,omitempty"`
 
