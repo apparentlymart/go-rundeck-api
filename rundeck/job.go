@@ -37,6 +37,43 @@ type JobDetail struct {
 	CommandSequence           *JobCommandSequence `xml:"sequence,omitempty"`
 	NodeFilter                *JobNodeFilter      `xml:"nodefilters,omitempty"`
 	NodesSelectedByDefault    bool                `xml:"nodesSelectedByDefault,omitempty"`
+	Schedule                  *JobSchedule        `xml:"schedule"`
+}
+
+type JobSchedule struct {
+	XMLName         xml.Name               `xml:"schedule"`
+	DayOfMonth      *JobScheduleDayOfMonth `xml:"dayofmonth,omitempty"`
+	Time            JobScheduleTime        `xml:"time"`
+	Month           JobScheduleMonth       `xml:"month"`
+	WeekDay         *JobScheduleWeekDay    `xml:"weekday,omitempty"`
+	Year            JobScheduleYear        `xml:"year"`
+}
+
+type JobScheduleDayOfMonth struct {
+	XMLName      xml.Name `xml:"dayofmonth"`
+}
+
+type JobScheduleMonth struct {
+	XMLName xml.Name `xml:"month"`
+	Day     string   `xml:"day,attr,omitempty"`
+	Month   string   `xml:"month,attr"`
+}
+
+type JobScheduleYear struct {
+	XMLName xml.Name `xml:"year"`
+	Year    string   `xml:"year,attr"`
+}
+
+type JobScheduleWeekDay struct {
+	XMLName xml.Name `xml:"weekday"`
+	Day string   `xml:"day,attr"`
+}
+
+type JobScheduleTime struct {
+	XMLName  xml.Name `xml:"time"`
+	Hour     string   `xml:"hour,attr"`
+	Minute   string   `xml:"minute,attr"`
+	Seconds  string   `xml:"seconds,attr"`
 }
 
 type jobDetailList struct {
@@ -92,6 +129,9 @@ type JobOption struct {
 	// and other secrets.
 	ObscureInput bool `xml:"secure,attr,omitempty"`
 
+  // If ObscureInput is set, StoragePath can be used to point out credentials.
+  StoragePath string `xml:"storagePath,attr,omitempty"`
+
 	// If set, the value can be accessed from scripts.
 	ValueIsExposedToScripts bool `xml:"valueExposed,attr,omitempty"`
 }
@@ -120,6 +160,9 @@ type JobCommandSequence struct {
 // ScriptFileArgs.
 type JobCommand struct {
 	XMLName xml.Name
+
+	// description
+	Description string `xml:"description,omitempty"`
 
 	// A literal shell command to run.
 	ShellCommand string `xml:"exec,omitempty"`
