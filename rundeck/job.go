@@ -30,13 +30,55 @@ type JobDetail struct {
 	GroupName                 string              `xml:"group,omitempty"`
 	ProjectName               string              `xml:"context>project,omitempty"`
 	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
-	Description               string              `xml:"description,omitempty"`
+	Description               string              `xml:"description"`
 	LogLevel                  string              `xml:"loglevel,omitempty"`
-	AllowConcurrentExecutions bool                `xml:"multipleExecutions"`
-	Dispatch                  *JobDispatch        `xml:"dispatch"`
+	AllowConcurrentExecutions bool                `xml:"multipleExecutions,omitempty"`
+	Dispatch                  *JobDispatch        `xml:"dispatch,omitempty"`
 	CommandSequence           *JobCommandSequence `xml:"sequence,omitempty"`
 	NodeFilter                *JobNodeFilter      `xml:"nodefilters,omitempty"`
-	NodesSelectedByDefault    bool                `xml:"nodesSelectedByDefault,omitempty"`
+
+	/* If Dispatch is enabled, nodesSelectedByDefault is always present with true/false.
+	 * by this reason omitempty cannot be present.
+	 * This has to be handle by the user.
+	 */
+	NodesSelectedByDefault    bool                `xml:"nodesSelectedByDefault"`
+	Schedule                  *JobSchedule        `xml:"schedule"`
+}
+
+type JobSchedule struct {
+	XMLName         xml.Name               `xml:"schedule"`
+	DayOfMonth      *JobScheduleDayOfMonth `xml:"dayofmonth,omitempty"`
+	Time            JobScheduleTime        `xml:"time"`
+	Month           JobScheduleMonth       `xml:"month"`
+	WeekDay         *JobScheduleWeekDay    `xml:"weekday,omitempty"`
+	Year            JobScheduleYear        `xml:"year"`
+}
+
+type JobScheduleDayOfMonth struct {
+	XMLName      xml.Name `xml:"dayofmonth"`
+}
+
+type JobScheduleMonth struct {
+	XMLName xml.Name `xml:"month"`
+	Day     string   `xml:"day,attr,omitempty"`
+	Month   string   `xml:"month,attr"`
+}
+
+type JobScheduleYear struct {
+	XMLName xml.Name `xml:"year"`
+	Year    string   `xml:"year,attr"`
+}
+
+type JobScheduleWeekDay struct {
+	XMLName xml.Name `xml:"weekday"`
+	Day string   `xml:"day,attr"`
+}
+
+type JobScheduleTime struct {
+	XMLName  xml.Name `xml:"time"`
+	Hour     string   `xml:"hour,attr"`
+	Minute   string   `xml:"minute,attr"`
+	Seconds  string   `xml:"seconds,attr"`
 }
 
 type jobDetailList struct {
@@ -92,6 +134,9 @@ type JobOption struct {
 	// and other secrets.
 	ObscureInput bool `xml:"secure,attr,omitempty"`
 
+	// If ObscureInput is set, StoragePath can be used to point out credentials.
+	StoragePath string `xml:"storagePath,attr,omitempty"`
+
 	// If set, the value can be accessed from scripts.
 	ValueIsExposedToScripts bool `xml:"valueExposed,attr,omitempty"`
 }
@@ -113,6 +158,9 @@ type JobCommandSequence struct {
 
 	// Sequence of commands to run in the sequence.
 	Commands []JobCommand `xml:"command"`
+
+	// Description
+	Description string `xml:"description,omitempty"`
 }
 
 // JobCommand describes a particular command to run within the sequence of commands on a job.
@@ -121,6 +169,9 @@ type JobCommandSequence struct {
 type JobCommand struct {
 	XMLName xml.Name
 
+	// Description
+	Description string `xml:"description,omitempty"`
+
 	// A literal shell command to run.
 	ShellCommand string `xml:"exec,omitempty"`
 
@@ -128,11 +179,17 @@ type JobCommand struct {
 	// a shell script it should have an appropriate #! line.
 	Script string `xml:"script,omitempty"`
 
+	// Add extension to the temporary filename.
+	FileExtension string `xml:"fileExtension,omitempty"`
+
 	// A pre-existing file (on the target nodes) that will be executed.
 	ScriptFile string `xml:"scriptfile,omitempty"`
 
 	// When ScriptFile is set, the arguments to provide to the script when executing it.
 	ScriptFileArgs string `xml:"scriptargs,omitempty"`
+
+	// ScriptInterpreter is used to execute (Script)File with.
+	ScriptInterpreter *JobCommandScriptInterpreter `xml:"scriptinterpreter,omitempty"`
 
 	// A reference to another job to run as this command.
 	Job *JobCommandJobRef `xml:"jobref"`
@@ -144,12 +201,20 @@ type JobCommand struct {
 	NodeStepPlugin *JobPlugin `xml:"node-step-plugin"`
 }
 
+// (Inline) Script interpreter
+type JobCommandScriptInterpreter struct {
+	XMLName          xml.Name `xml:"scriptinterpreter"`
+	InvocationString string   `xml:",chardata"`
+	ArgsQuoted       bool     `xml:"argsquoted,attr,omitempty"`
+}
+
 // JobCommandJobRef is a reference to another job that will run as one of the commands of a job.
 type JobCommandJobRef struct {
 	XMLName        xml.Name                  `xml:"jobref"`
 	Name           string                    `xml:"name,attr"`
 	GroupName      string                    `xml:"group,attr"`
 	RunForEachNode bool                      `xml:"nodeStep,attr"`
+	NodeFilter     *JobNodeFilter            `xml:"nodefilters,omitempty"`
 	Arguments      JobCommandJobRefArguments `xml:"arg"`
 }
 

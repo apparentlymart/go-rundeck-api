@@ -111,3 +111,138 @@ func TestUnmarshalJobPlugin(t *testing.T) {
 		},
 	})
 }
+
+func TestMarshalJobCommand(t *testing.T) {
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-shell",
+			JobCommand{
+				ShellCommand: "command",
+			},
+			`<JobCommand><exec>command</exec></JobCommand>`,
+		},
+		marshalTest{
+			"with-script",
+			JobCommand{
+				Script: "script",
+			},
+			`<JobCommand><script>script</script></JobCommand>`,
+		},
+		marshalTest{
+			"with-script-interpreter",
+			JobCommand{
+				FileExtension: "sh",
+				Script: "Hello World!",
+			  ScriptInterpreter: &JobCommandScriptInterpreter{
+						InvocationString: "sudo",
+				},
+			},
+			`<JobCommand><script>Hello World!</script><fileExtension>sh</fileExtension><scriptinterpreter>sudo</scriptinterpreter></JobCommand>`,
+		},
+	})
+}
+
+func TestUnmarshalJobCommand(t *testing.T) {
+	testUnmarshalXML(t, []unmarshalTest{
+		unmarshalTest{
+			"with-shell",
+			`<JobCommand><exec>command</exec></JobCommand>`,
+			&JobCommand{},
+			func (rv interface {}) error {
+				v := rv.(*JobCommand)
+				if v.ShellCommand != "command" {
+					return fmt.Errorf("got ShellCommand %s, but expecting command", v.ShellCommand)
+				}
+				return nil
+			},
+		},
+		unmarshalTest{
+			"with-script",
+			`<JobCommand><script>script</script></JobCommand>`,
+			&JobCommand{},
+			func (rv interface {}) error {
+				v := rv.(*JobCommand)
+				if v.Script != "script" {
+					return fmt.Errorf("got Script %s, but expecting script", v.Script)
+				}
+				return nil
+			},
+		},
+		unmarshalTest{
+			"with-script-interpreter",
+			`<JobCommand><script>Hello World!</script><fileExtension>sh</fileExtension><scriptinterpreter>sudo</scriptinterpreter></JobCommand>`,
+			&JobCommand{},
+			func (rv interface {}) error {
+				v := rv.(*JobCommand)
+				if v.FileExtension != "sh" {
+					return fmt.Errorf("got FileExtension %s, but expecting sh", v.FileExtension)
+				}
+				if v.Script != "Hello World!" {
+					return fmt.Errorf("got Script %s, but expecting Hello World!", v.Script)
+				}
+				if v.ScriptInterpreter == nil {
+					return fmt.Errorf("got %s, but expecting not nil", v.ScriptInterpreter)
+				}
+				if v.ScriptInterpreter.InvocationString != "sudo" {
+					return fmt.Errorf("got InvocationString %s, but expecting sudo", v.ScriptInterpreter.InvocationString)
+				}
+				return nil
+			},
+		},
+	})
+}
+
+func TestMarshalScriptInterpreter(t *testing.T) {
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-script-interpreter",
+			JobCommandScriptInterpreter{
+					InvocationString: "sudo",
+			},
+			`<scriptinterpreter>sudo</scriptinterpreter>`,
+		},
+		marshalTest{
+			"with-script-interpreter-quoted",
+			JobCommandScriptInterpreter{
+					ArgsQuoted: true,
+					InvocationString: "sudo",
+			},
+			`<scriptinterpreter argsquoted="true">sudo</scriptinterpreter>`,
+		},
+	})
+}
+
+func TestUnmarshalScriptInterpreter(t *testing.T) {
+	testUnmarshalXML(t, []unmarshalTest{
+		unmarshalTest{
+			"with-script-interpreter",
+			`<scriptinterpreter>sudo</scriptinterpreter>`,
+			&JobCommandScriptInterpreter{},
+			func (rv interface {}) error {
+				v := rv.(*JobCommandScriptInterpreter)
+				if v.InvocationString != "sudo" {
+					return fmt.Errorf("got InvocationString %s, but expecting sudo", v.InvocationString)
+				}
+				if v.ArgsQuoted {
+					return fmt.Errorf("got ArgsQuoted %s, but expecting false", v.ArgsQuoted)
+				}
+				return nil
+			},
+		},
+		unmarshalTest{
+			"with-script-interpreter-quoted",
+			`<scriptinterpreter argsquoted="true">sudo</scriptinterpreter>`,
+			&JobCommandScriptInterpreter{},
+			func (rv interface {}) error {
+				v := rv.(*JobCommandScriptInterpreter)
+				if v.InvocationString != "sudo" {
+					return fmt.Errorf("got InvocationString %s, but expecting sudo", v.InvocationString)
+				}
+				if ! v.ArgsQuoted {
+					return fmt.Errorf("got ArgsQuoted %s, but expecting true", v.ArgsQuoted)
+				}
+				return nil
+			},
+		},
+	})
+}
