@@ -96,39 +96,26 @@ type JobOptions struct {
 type JobOption struct {
 	XMLName xml.Name `xml:"option"`
 
-	// The name of the option, which can be used to interpolate its value
-	// into job commands.
-	Name string `xml:"name,attr,omitempty"`
-
-	// The default value of the option.
-	DefaultValue string `xml:"value,attr,omitempty"`
-
-	// A sequence of predefined choices for this option. Mutually exclusive with ValueChoicesURL.
-	ValueChoices JobValueChoices `xml:"values,attr"`
-
-	// A URL from which the predefined choices for this option will be retrieved.
-	// Mutually exclusive with ValueChoices
-	ValueChoicesURL string `xml:"valuesUrl,attr,omitempty"`
+	// If AllowsMultipleChoices is set, the string that will be used to delimit the multiple
+	// chosen options.
+	MultiValueDelimiter string `xml:"delimiter,attr,omitempty"`
 
 	// If set, Rundeck will reject values that are not in the set of predefined choices.
 	RequirePredefinedChoice bool `xml:"enforcedvalues,attr,omitempty"`
-
-	// Regular expression to be used to validate the option value.
-	ValidationRegex string `xml:"regex,attr,omitempty"`
-
-	// Description of the value to be shown in the Rundeck UI.
-	Description string `xml:"description,omitempty"`
-
-	// If set, Rundeck requires a value to be set for this option.
-	IsRequired bool `xml:"required,attr,omitempty"`
 
 	// When either ValueChoices or ValueChoicesURL is set, controls whether more than one
 	// choice may be selected as the value.
 	AllowsMultipleValues bool `xml:"multivalued,attr,omitempty"`
 
-	// If AllowsMultipleChoices is set, the string that will be used to delimit the multiple
-	// chosen options.
-	MultiValueDelimiter string `xml:"delimeter,attr,omitempty"`
+	// The name of the option, which can be used to interpolate its value
+	// into job commands.
+	Name string `xml:"name,attr,omitempty"`
+
+	// Regular expression to be used to validate the option value.
+	ValidationRegex string `xml:"regex,attr,omitempty"`
+
+	// If set, Rundeck requires a value to be set for this option.
+	IsRequired bool `xml:"required,attr,omitempty"`
 
 	// If set, the input for this field will be obscured in the UI. Useful for passwords
 	// and other secrets.
@@ -137,9 +124,23 @@ type JobOption struct {
 	// If ObscureInput is set, StoragePath can be used to point out credentials.
 	StoragePath string `xml:"storagePath,attr,omitempty"`
 
+	// The default value of the option.
+	DefaultValue string `xml:"value,attr,omitempty"`
+
 	// If set, the value can be accessed from scripts.
 	ValueIsExposedToScripts bool `xml:"valueExposed,attr,omitempty"`
+
+	// A sequence of predefined choices for this option. Mutually exclusive with ValueChoicesURL.
+	ValueChoices JobValueChoices `xml:"values,attr"`
+
+	// A URL from which the predefined choices for this option will be retrieved.
+	// Mutually exclusive with ValueChoices
+	ValueChoicesURL string `xml:"valuesUrl,attr,omitempty"`
+
+	// Description of the value to be shown in the Rundeck UI.
+	Description string `xml:"description,omitempty"`
 }
+
 
 // JobValueChoices is a specialization of []string representing a sequence of predefined values
 // for a job option.
