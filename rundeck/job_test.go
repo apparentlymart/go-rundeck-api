@@ -246,3 +246,45 @@ func TestUnmarshalScriptInterpreter(t *testing.T) {
 		},
 	})
 }
+
+func TestMarshalJobOption(t *testing.T) {
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-option-basic",
+			JobOption{
+				Name: "basic",
+			},
+			`<option name="basic"></option>`,
+		},
+		marshalTest{
+			"with-option-multivalued",
+			JobOption{
+				Name: "Multivalued",
+				MultiValueDelimiter: "|",
+				RequirePredefinedChoice: true,
+				AllowsMultipleValues: true,
+				IsRequired: true,
+				ValueChoices: JobValueChoices([]string{"myValues"}),
+			},
+			`<option delimiter="|" enforcedvalues="true" multivalued="true" name="Multivalued" required="true" values="myValues"></option>`,
+		},
+		marshalTest{
+			"with-all-attributes",
+			JobOption{
+				Name: "advanced",
+				MultiValueDelimiter: "|",
+				RequirePredefinedChoice: true,
+				AllowsMultipleValues: true,
+				ValidationRegex: ".+",
+				IsRequired: true,
+				ObscureInput: true,
+				StoragePath: "myKey",
+				DefaultValue: "myValue",
+				ValueIsExposedToScripts: true,
+				ValueChoices: JobValueChoices([]string{"myValues"}),
+				ValueChoicesURL: "myValuesUrl",
+			},
+			`<option delimiter="|" enforcedvalues="true" multivalued="true" name="advanced" regex=".+" required="true" secure="true" storagePath="myKey" value="myValue" valueExposed="true" values="myValues" valuesUrl="myValuesUrl"></option>`,
+		},
+	})
+}
