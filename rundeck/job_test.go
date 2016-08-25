@@ -137,7 +137,7 @@ func TestMarshalJobCommand(t *testing.T) {
 						InvocationString: "sudo",
 				},
 			},
-			`<JobCommand><script>Hello World!</script><fileExtension>sh</fileExtension><scriptinterpreter>sudo</scriptinterpreter></JobCommand>`,
+			`<JobCommand><fileExtension>sh</fileExtension><script>Hello World!</script><scriptinterpreter>sudo</scriptinterpreter></JobCommand>`,
 		},
 	})
 }
@@ -247,6 +247,29 @@ func TestUnmarshalScriptInterpreter(t *testing.T) {
 	})
 }
 
+func TestMarshalErrorHanlder(t *testing.T) {
+	testMarshalXML(t, []marshalTest{
+		marshalTest{
+			"with-errorhandler",
+			JobCommandSequence{
+				ContinueOnError: true,
+				OrderingStrategy: "step-first",
+				Commands: []JobCommand{
+					JobCommand{
+						Script: "inline_script",
+						ErrorHandler: &JobCommand{
+							ContinueOnError: true,
+							Script: "error_script",
+						},
+					},
+				},
+			},
+			`<sequence keepgoing="true" strategy="step-first"><command><errorhandler keepgoingOnSuccess="true"><script>error_script</script></errorhandler><script>inline_script</script></command></sequence>`,
+		},
+	})
+}
+
+
 func TestMarshalJobOption(t *testing.T) {
 	testMarshalXML(t, []marshalTest{
 		marshalTest{
@@ -288,3 +311,4 @@ func TestMarshalJobOption(t *testing.T) {
 		},
 	})
 }
+
