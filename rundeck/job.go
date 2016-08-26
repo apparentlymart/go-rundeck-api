@@ -172,18 +172,24 @@ type JobCommandSequence struct {
 type JobCommand struct {
 	XMLName xml.Name
 
+	// If the Workflow keepgoing is false, this allows the Workflow to continue when the Error Handler is successful.
+	ContinueOnError bool     `xml:"keepgoingOnSuccess,attr,omitempty"`
+
 	// Description
 	Description string `xml:"description,omitempty"`
+
+	// On error:
+	ErrorHandler *JobCommand `xml:"errorhandler,omitempty"`
 
 	// A literal shell command to run.
 	ShellCommand string `xml:"exec,omitempty"`
 
+	// Add extension to the temporary filename.
+	FileExtension string `xml:"fileExtension,omitempty"`
+
 	// An inline program to run. This will be written to disk and executed, so if it is
 	// a shell script it should have an appropriate #! line.
 	Script string `xml:"script,omitempty"`
-
-	// Add extension to the temporary filename.
-	FileExtension string `xml:"fileExtension,omitempty"`
 
 	// A pre-existing file (on the target nodes) that will be executed.
 	ScriptFile string `xml:"scriptfile,omitempty"`
