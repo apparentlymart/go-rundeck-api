@@ -223,6 +223,7 @@ type JobCommandJobRef struct {
 	Name           string                    `xml:"name,attr"`
 	GroupName      string                    `xml:"group,attr"`
 	RunForEachNode bool                      `xml:"nodeStep,attr"`
+	Dispatch       *JobDispatch              `xml:"dispatch,omitempty"`
 	NodeFilter     *JobNodeFilter            `xml:"nodefilters,omitempty"`
 	Arguments      JobCommandJobRefArguments `xml:"arg"`
 }
