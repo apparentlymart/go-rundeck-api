@@ -62,11 +62,11 @@ func (c *Client) ReplacePrivateKey(path string, content string) error {
 }
 
 func (c *Client) CreatePassword(path string, content string) error {
-	return c.createOrReplacePassword("POST", path, "application/x-rundeck-data-password", content)
+	return c.createOrReplacePublicKey("POST", path, "application/x-rundeck-data-password", content)
 }
 
 func (c *Client) ReplacePassword(path string, content string) error {
-	return c.createOrReplacePassword("PUT", path, "application/x-rundeck-data-password", content)
+	return c.createOrReplacePublicKey("PUT", path, "application/x-rundeck-data-password", content)
 }
 
 func (c *Client) createOrReplacePublicKey(method string, path string, contentType string, content string) error {
