@@ -31,7 +31,7 @@ type JobDetail struct {
 	ProjectName               string              `xml:"context>project,omitempty"`
 	OptionsConfig             *JobOptions         `xml:"context>options,omitempty"`
 	Description               string              `xml:"description"`
-	ExecutionEnabled          bool                `xml:"executionEnabled"`
+	ExecutionEnabled          bool                `xml:"executionEnabled,omitempty"`
 	LogLevel                  string              `xml:"loglevel,omitempty"`
 	AllowConcurrentExecutions bool                `xml:"multipleExecutions,omitempty"`
 	Dispatch                  *JobDispatch        `xml:"dispatch,omitempty"`
@@ -45,9 +45,9 @@ type JobDetail struct {
 	 * by this reason omitempty cannot be present.
 	 * This has to be handle by the user.
 	 */
-	NodesSelectedByDefault *Boolean     `xml:"nodesSelectedByDefault"`
+	NodesSelectedByDefault *Boolean     `xml:"nodesSelectedByDefault,omitempty"`
 	Schedule               *JobSchedule `xml:"schedule,omitempty"`
-	ScheduleEnabled        bool         `xml:"scheduleEnabled"`
+	ScheduleEnabled        bool         `xml:"scheduleEnabled,omitempty"`
 }
 
 type Boolean struct {
